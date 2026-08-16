@@ -1,5 +1,7 @@
-import * as AtomReact from "@effect/atom-react/Hooks"
+import * as AtomSolid from "@effect/atom-solid/Hooks"
+import { RegistryProvider } from "@effect/atom-solid/RegistryContext"
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult"
+import { createMemo, For } from "solid-js"
 import {
   filterAtom,
   type TodoFilter,
@@ -8,6 +10,7 @@ import {
   useBrokenEndpointAtom,
   visibleTodosAtom
 } from "./state.ts"
+import "./styles.css"
 
 const filters: ReadonlyArray<{ readonly value: TodoFilter; readonly label: string }> = [
   { value: "all", label: "All" },
@@ -15,26 +18,38 @@ const filters: ReadonlyArray<{ readonly value: TodoFilter; readonly label: strin
   { value: "done", label: "Done" }
 ]
 
-export function App() {
-  const result = AtomReact.useAtomValue(visibleTodosAtom)
-  const statsResult = AtomReact.useAtomValue(todoStatsAtom)
-  const [filter, setFilter] = AtomReact.useAtom(filterAtom)
-  const [useBrokenEndpoint, setUseBrokenEndpoint] = AtomReact.useAtom(useBrokenEndpointAtom)
-  const refresh = AtomReact.useAtomRefresh(todosAtom)
+export default function App() {
+  return (
+    <RegistryProvider>
+      <TodoApp />
+    </RegistryProvider>
+  )
+}
 
-  const todos = AsyncResult.getOrElse(result, () => [])
-  const stats = AsyncResult.getOrElse(statsResult, () => ({ all: 0, open: 0, done: 0 }))
-  const errorMessage = AsyncResult.matchWithError(result, {
-    onInitial: () => undefined,
-    onError: (error) => error.message,
-    onDefect: () => "An unexpected defect occurred while running the Effect.",
-    onSuccess: () => undefined
-  })
-  const isInitialLoading = result._tag === "Initial" && result.waiting
-  const hasPreviousData = result._tag === "Failure" && todos.length > 0
+function TodoApp() {
+  const result = AtomSolid.useAtomValue(() => visibleTodosAtom)
+  const statsResult = AtomSolid.useAtomValue(() => todoStatsAtom)
+  const [filter, setFilter] = AtomSolid.useAtom(() => filterAtom)
+  const [useBrokenEndpoint, setUseBrokenEndpoint] = AtomSolid.useAtom(() => useBrokenEndpointAtom)
+  const refresh = AtomSolid.useAtomRefresh(() => todosAtom)
+
+  const todos = createMemo(() => AsyncResult.getOrElse(result(), () => []))
+  const stats = createMemo(() =>
+    AsyncResult.getOrElse(statsResult(), () => ({ all: 0, open: 0, done: 0 }))
+  )
+  const errorMessage = createMemo(() =>
+    AsyncResult.matchWithError(result(), {
+      onInitial: () => undefined,
+      onError: (error) => error.message,
+      onDefect: () => "An unexpected defect occurred while running the Effect.",
+      onSuccess: () => undefined
+    })
+  )
+  const isInitialLoading = createMemo(() => result()._tag === "Initial" && result().waiting)
+  const hasPreviousData = createMemo(() => result()._tag === "Failure" && todos().length > 0)
 
   const retry = () => {
-    if (useBrokenEndpoint) {
+    if (useBrokenEndpoint()) {
       setUseBrokenEndpoint(false)
     } else {
       refresh()
@@ -42,23 +57,23 @@ export function App() {
   }
 
   return (
-    <main className="shell">
-      <header className="hero">
+    <main class="shell">
+      <header class="hero">
         <div>
-          <p className="eyebrow">Effect data lab / 01</p>
+          <p class="eyebrow">Effect data lab / 01</p>
           <h1>
             One request.
             <br />
             Every state accounted for.
           </h1>
         </div>
-        <p className="intro">
-          Effect describes a typed HTTP program. Atom runs and shares it. React renders the
-          resulting state without a request <code>useEffect</code> or a pile of booleans.
+        <p class="intro">
+          Effect describes a typed HTTP program. Atom runs and shares it. Solid renders the
+          resulting state without a request <code>createEffect</code> or a pile of booleans.
         </p>
       </header>
 
-      <section className="flow" aria-label="Data flow">
+      <section class="flow" aria-label="Data flow">
         <div>
           <span>01</span>
           <strong>Effect</strong>
@@ -71,46 +86,46 @@ export function App() {
         </div>
         <div>
           <span>03</span>
-          <strong>React</strong>
+          <strong>Solid</strong>
           <small>subscribe + render</small>
         </div>
       </section>
 
-      <section className="workspace">
-        <aside className="controls">
-          <div className="control-block">
-            <p className="label">AsyncResult</p>
-            <div className="result-readout">
-              <strong>{result._tag}</strong>
-              <span className={result.waiting ? "pulse" : ""}>
-                waiting: {String(result.waiting)}
+      <section class="workspace">
+        <aside class="controls">
+          <div class="control-block">
+            <p class="label">AsyncResult</p>
+            <div class="result-readout">
+              <strong>{result()._tag}</strong>
+              <span class={result().waiting ? "pulse" : ""}>
+                waiting: {String(result().waiting)}
               </span>
             </div>
-            <p className="hint">
+            <p class="hint">
               <code>waiting</code> stays independent from success or failure, so refreshes do not
               erase useful data.
             </p>
           </div>
 
-          <div className="control-block">
-            <p className="label">Failure switch</p>
-            <label className="switch-row">
+          <div class="control-block">
+            <p class="label">Failure switch</p>
+            <label class="switch-row">
               <input
                 type="checkbox"
-                checked={useBrokenEndpoint}
-                onChange={(event) => setUseBrokenEndpoint(event.target.checked)}
+                checked={useBrokenEndpoint()}
+                onChange={(event) => setUseBrokenEndpoint(event.currentTarget.checked)}
               />
-              <span className="switch" aria-hidden="true" />
+              <span class="switch" aria-hidden="true" />
               <span>Use broken endpoint</span>
             </label>
-            <p className="hint">
+            <p class="hint">
               Change this after data loads. Atom keeps the previous success while exposing the typed
               failure.
             </p>
           </div>
 
-          <div className="control-block file-map">
-            <p className="label">Where to look</p>
+          <div class="control-block file-map">
+            <p class="label">Where to look</p>
             <p>
               <code>api.ts</code>
               <span>Effect</span>
@@ -121,41 +136,40 @@ export function App() {
             </p>
             <p>
               <code>App.tsx</code>
-              <span>React</span>
+              <span>Solid</span>
             </p>
           </div>
         </aside>
 
-        <div className="data-panel">
-          <div className="toolbar">
-            <div className="filters" aria-label="Filter todos">
+        <div class="data-panel">
+          <div class="toolbar">
+            <div class="filters" aria-label="Filter todos">
               {filters.map((item) => (
                 <button
                   type="button"
-                  className={filter === item.value ? "active" : ""}
-                  aria-pressed={filter === item.value}
+                  class={filter() === item.value ? "active" : ""}
+                  aria-pressed={filter() === item.value ? "true" : "false"}
                   onClick={() => setFilter(item.value)}
-                  key={item.value}
                 >
                   {item.label}
-                  <sup>{stats[item.value]}</sup>
+                  <sup>{stats()[item.value]}</sup>
                 </button>
               ))}
             </div>
-            <button type="button" className="refresh" onClick={refresh} disabled={result.waiting}>
-              {result.waiting ? "Fetching..." : "Refresh"}
+            <button type="button" class="refresh" onClick={refresh} disabled={result().waiting}>
+              {result().waiting ? "Fetching..." : "Refresh"}
             </button>
           </div>
 
-          {errorMessage !== undefined && (
-            <div className="error-panel" role="alert">
+          {errorMessage() === undefined ? null : (
+            <div class="error-panel" role="alert">
               <div>
                 <strong>
-                  {hasPreviousData
+                  {hasPreviousData()
                     ? "Refresh failed; showing cached data."
                     : "Could not load todos."}
                 </strong>
-                <p>{errorMessage}</p>
+                <p>{errorMessage()}</p>
               </div>
               <button type="button" onClick={retry}>
                 Try again
@@ -163,28 +177,30 @@ export function App() {
             </div>
           )}
 
-          {isInitialLoading ? (
-            <div className="loading-state" aria-live="polite">
-              <span className="loader" />
+          {isInitialLoading() ? (
+            <div class="loading-state" aria-live="polite">
+              <span class="loader" />
               <div>
                 <strong>Running the Effect</strong>
                 <p>The first request has no previous value, so the atom is Initial + waiting.</p>
               </div>
             </div>
-          ) : todos.length === 0 && errorMessage === undefined ? (
-            <div className="empty-state">No todos match this filter.</div>
+          ) : todos().length === 0 && errorMessage() === undefined ? (
+            <div class="empty-state">No todos match this filter.</div>
           ) : (
-            <ol className={result.waiting ? "todo-list refreshing" : "todo-list"}>
-              {todos.map((todo) => (
-                <li key={todo.id}>
-                  <span
-                    className={todo.completed ? "check done" : "check"}
-                    aria-label={todo.completed ? "Done" : "Open"}
-                  />
-                  <span>{todo.title}</span>
-                  <small>#{String(todo.id).padStart(3, "0")}</small>
-                </li>
-              ))}
+            <ol class={result().waiting ? "todo-list refreshing" : "todo-list"}>
+              <For each={todos()}>
+                {(todo) => (
+                  <li>
+                    <span
+                      class={todo.completed ? "check done" : "check"}
+                      aria-label={todo.completed ? "Done" : "Open"}
+                    />
+                    <span>{todo.title}</span>
+                    <small>#{String(todo.id).padStart(3, "0")}</small>
+                  </li>
+                )}
+              </For>
             </ol>
           )}
         </div>

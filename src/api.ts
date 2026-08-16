@@ -28,7 +28,7 @@ export class TodoApi extends Context.Service<
       useBrokenEndpoint: boolean
     ) => Effect.Effect<ReadonlyArray<Todo>, TodoApiError>
   }
->()("example-react/TodoApi") {
+>()("example-solid/TodoApi") {
   static readonly layer = Layer.effect(
     TodoApi,
     Effect.gen(function* () {
