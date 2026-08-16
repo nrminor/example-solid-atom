@@ -2,7 +2,7 @@ import * as AtomSolid from "@effect/atom-solid/Hooks"
 import { RegistryProvider } from "@effect/atom-solid/RegistryContext"
 import * as Option from "effect/Option"
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult"
-import { createMemo, For } from "solid-js"
+import { createMemo, For, Match, Show, Switch } from "solid-js"
 import {
   filterAtom,
   type TodoFilter,
@@ -101,9 +101,7 @@ function TodoApp() {
             <p class="label">AsyncResult</p>
             <div class="result-readout">
               <strong>{result()._tag}</strong>
-              <span class={result().waiting ? "pulse" : ""}>
-                waiting: {String(result().waiting)}
-              </span>
+              <span class={{ pulse: result().waiting }}>waiting: {String(result().waiting)}</span>
             </div>
             <p class="hint">
               <code>waiting</code> stays independent from success or failure, so refreshes do not
@@ -148,65 +146,74 @@ function TodoApp() {
         <div class="data-panel">
           <div class="toolbar">
             <div class="filters" aria-label="Filter todos">
-              {filters.map((item) => (
-                <button
-                  type="button"
-                  class={filter() === item.value ? "active" : ""}
-                  aria-pressed={filter() === item.value ? "true" : "false"}
-                  onClick={() => setFilter(item.value)}
-                >
-                  {item.label}
-                  <sup>{stats()[item.value]}</sup>
-                </button>
-              ))}
+              <For each={filters}>
+                {(item) => (
+                  <button
+                    type="button"
+                    class={{ active: filter() === item.value }}
+                    aria-pressed={filter() === item.value ? "true" : "false"}
+                    onClick={() => setFilter(item.value)}
+                  >
+                    {item.label}
+                    <sup>{stats()[item.value]}</sup>
+                  </button>
+                )}
+              </For>
             </div>
             <button type="button" class="refresh" onClick={refresh} disabled={result().waiting}>
               {result().waiting ? "Fetching..." : "Refresh"}
             </button>
           </div>
 
-          {errorMessage() === undefined ? null : (
-            <div class="error-panel" role="alert">
-              <div>
-                <strong>
-                  {hasPreviousData()
-                    ? "Refresh failed; showing cached data."
-                    : "Could not load todos."}
-                </strong>
-                <p>{errorMessage()}</p>
+          <Show when={errorMessage()}>
+            {(message) => (
+              <div class="error-panel" role="alert">
+                <div>
+                  <strong>
+                    {hasPreviousData()
+                      ? "Refresh failed; showing cached data."
+                      : "Could not load todos."}
+                  </strong>
+                  <p>{message()}</p>
+                </div>
+                <button type="button" onClick={retry}>
+                  Try again
+                </button>
               </div>
-              <button type="button" onClick={retry}>
-                Try again
-              </button>
-            </div>
-          )}
+            )}
+          </Show>
 
-          {isInitialLoading() ? (
-            <div class="loading-state" aria-live="polite">
-              <span class="loader" />
-              <div>
-                <strong>Running the Effect</strong>
-                <p>The first request has no previous value, so the atom is Initial + waiting.</p>
+          <Switch
+            fallback={
+              <ol class={["todo-list", { refreshing: result().waiting }]}>
+                <For each={todos()}>
+                  {(todo) => (
+                    <li>
+                      <span
+                        class={["check", { done: todo.completed }]}
+                        aria-label={todo.completed ? "Done" : "Open"}
+                      />
+                      <span>{todo.title}</span>
+                      <small>#{String(todo.id).padStart(3, "0")}</small>
+                    </li>
+                  )}
+                </For>
+              </ol>
+            }
+          >
+            <Match when={isInitialLoading()}>
+              <div class="loading-state" aria-live="polite">
+                <span class="loader" />
+                <div>
+                  <strong>Running the Effect</strong>
+                  <p>The first request has no previous value, so the atom is Initial + waiting.</p>
+                </div>
               </div>
-            </div>
-          ) : todos().length === 0 && errorMessage() === undefined ? (
-            <div class="empty-state">No todos match this filter.</div>
-          ) : (
-            <ol class={result().waiting ? "todo-list refreshing" : "todo-list"}>
-              <For each={todos()}>
-                {(todo) => (
-                  <li>
-                    <span
-                      class={todo.completed ? "check done" : "check"}
-                      aria-label={todo.completed ? "Done" : "Open"}
-                    />
-                    <span>{todo.title}</span>
-                    <small>#{String(todo.id).padStart(3, "0")}</small>
-                  </li>
-                )}
-              </For>
-            </ol>
-          )}
+            </Match>
+            <Match when={todos().length === 0 && errorMessage() === undefined}>
+              <div class="empty-state">No todos match this filter.</div>
+            </Match>
+          </Switch>
         </div>
       </section>
 
