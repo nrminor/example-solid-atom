@@ -1,0 +1,10 @@
+#:schema https://mise.jdx.dev/schema/mise.json
+
+[tools]
+node = "24"
+pnpm = "11.20.0"
+
+[bootstrap.repos]
+".agents/repos/example-react-atom" = { url = "https://github.com/mikearnaldi/example-react-atom.git" }
+".agents/repos/effect" = { url = "https://github.com/Effect-TS/effect.git" }
+".agents/repos/solidjs-templates" = { url = "https://github.com/solidjs/templates.git" }
