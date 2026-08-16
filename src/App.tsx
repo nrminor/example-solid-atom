@@ -1,5 +1,6 @@
 import * as AtomSolid from "@effect/atom-solid/Hooks"
 import { RegistryProvider } from "@effect/atom-solid/RegistryContext"
+import * as Option from "effect/Option"
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult"
 import { createMemo, For } from "solid-js"
 import {
@@ -46,7 +47,10 @@ function TodoApp() {
     })
   )
   const isInitialLoading = createMemo(() => result()._tag === "Initial" && result().waiting)
-  const hasPreviousData = createMemo(() => result()._tag === "Failure" && todos().length > 0)
+  const hasPreviousData = createMemo(() => {
+    const current = result()
+    return AsyncResult.isFailure(current) && Option.isSome(current.previousSuccess)
+  })
 
   const retry = () => {
     if (useBrokenEndpoint()) {
