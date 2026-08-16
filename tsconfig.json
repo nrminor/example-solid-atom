@@ -6,6 +6,8 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "allowJs": true,
+    "checkJs": true,
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
@@ -31,5 +33,12 @@
       }
     ]
   },
-  "include": ["src", "tests/**/*.ts", "tools/oxlint/**/*.ts", "vite.config.ts", "vitest.config.ts"]
+  "include": [
+    "src",
+    "tests/**/*.ts",
+    "tools/oxlint/**/*.ts",
+    "stylelint.config.mjs",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ]
 }
