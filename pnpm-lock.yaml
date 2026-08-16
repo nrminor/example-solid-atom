@@ -7,7 +7,7 @@ settings:
 packageExtensionsChecksum: sha256-MJXjLhgiKLHNiQoJvKfzQM6x2aBoXbVz0jHlBrXHt0Q=
 
 patchedDependencies:
-  '@effect/atom-solid@4.0.0-rc.109': d88cb758f347cfacda1121c1f297f289bbdf4c9f337bb5177fb8d67e43edded1
+  '@effect/atom-solid@4.0.0-rc.109': 01f0facbcac6f896914b4b629b7c9dcfbefa342210557854f6b383f54e7f5ef7
 
 importers:
 
@@ -15,7 +15,7 @@ importers:
     dependencies:
       '@effect/atom-solid':
         specifier: 4.0.0-rc.109
-        version: 4.0.0-rc.109(patch_hash=d88cb758f347cfacda1121c1f297f289bbdf4c9f337bb5177fb8d67e43edded1)(effect@4.0.0-rc.109)(solid-js@2.0.0-rc.0)
+        version: 4.0.0-rc.109(patch_hash=01f0facbcac6f896914b4b629b7c9dcfbefa342210557854f6b383f54e7f5ef7)(effect@4.0.0-rc.109)(solid-js@2.0.0-rc.0)
       '@solidjs/web':
         specifier: 2.0.0-rc.0
         version: 2.0.0-rc.0(solid-js@2.0.0-rc.0)
@@ -60,7 +60,7 @@ importers:
         specifier: 18.0.0
         version: 18.0.0(stylelint@17.14.1(supports-color@10.2.2)(typescript@7.0.2))
       typescript:
-        specifier: ^7.0.2
+        specifier: 7.0.2
         version: 7.0.2
       vite:
         specifier: ^8.1.5
@@ -2122,7 +2122,7 @@ snapshots:
       '@dom-expressions/compiler-wasm32-wasi': 0.50.0-next.40
       '@dom-expressions/compiler-win32-x64-msvc': 0.50.0-next.40
 
-  '@effect/atom-solid@4.0.0-rc.109(patch_hash=d88cb758f347cfacda1121c1f297f289bbdf4c9f337bb5177fb8d67e43edded1)(effect@4.0.0-rc.109)(solid-js@2.0.0-rc.0)':
+  '@effect/atom-solid@4.0.0-rc.109(patch_hash=01f0facbcac6f896914b4b629b7c9dcfbefa342210557854f6b383f54e7f5ef7)(effect@4.0.0-rc.109)(solid-js@2.0.0-rc.0)':
     dependencies:
       effect: 4.0.0-rc.109
       solid-js: 2.0.0-rc.0

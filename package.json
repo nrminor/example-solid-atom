@@ -5,10 +5,9 @@
   "type": "module",
   "packageManager": "pnpm@11.20.0",
   "scripts": {
-    "prepare": "effect-tsgo patch --oxlint",
     "dev": "vite",
     "build": "pnpm check && vite build",
-    "check": "tsc --noEmit",
+    "check": "tsc --noEmit && effect-tsgo diagnostics --project tsconfig.json --strict",
     "lint": "oxlint . && stylelint \"src/**/*.css\"",
     "lint:fix": "oxlint --fix . && stylelint --fix \"src/**/*.css\"",
     "fmt": "oxfmt .",
@@ -35,7 +34,7 @@
     "oxlint-tsgolint": "7.0.2001",
     "stylelint": "17.14.1",
     "stylelint-config-recommended": "18.0.0",
-    "typescript": "^7.0.2",
+    "typescript": "7.0.2",
     "vite": "^8.1.5",
     "vitest": "4.1.10"
   }

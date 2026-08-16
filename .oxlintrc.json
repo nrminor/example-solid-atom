@@ -1,6 +1,5 @@
 {
-  "$schema": "./node_modules/@effect/tsgo/oxlint-schema.json",
-  "extends": ["./node_modules/@effect/tsgo/oxlint-presets/recommended.json"],
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
   "ignorePatterns": [".agents/**", "dist/**"],
   "jsPlugins": [
     {
@@ -12,14 +11,6 @@
     "reportUnusedDisableDirectives": "error",
     "typeAware": true
   },
-  "overrides": [
-    {
-      "files": ["tests/e2e/**/*.ts"],
-      "rules": {
-        "effecttsgo/async-function": "off"
-      }
-    }
-  ],
   "rules": {
     "anti-slop/no-chained-type-assertions": "error",
     "anti-slop/no-conditional-empty-object-spread": "error",

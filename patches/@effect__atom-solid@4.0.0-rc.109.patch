@@ -1,5 +1,5 @@
 diff --git a/dist/Hooks.d.ts b/dist/Hooks.d.ts
-index 1d7be9a527b9abb3514b99e898f2a6ca96c899ec..3fb2840f1ca97f2259ea6b872e5ea26297803488 100644
+index 1d7be9a527b9abb3514b99e898f2a6ca96c899ec..4eaaa89f1a8e72020316148bc56480a80fc0f1b7 100644
 --- a/dist/Hooks.d.ts
 +++ b/dist/Hooks.d.ts
 @@ -2,7 +2,7 @@ import * as Exit from "effect/Exit";
@@ -24,7 +24,7 @@ index 1d7be9a527b9abb3514b99e898f2a6ca96c899ec..3fb2840f1ca97f2259ea6b872e5ea262
   * Subscribes to an atom ref and returns its value as a Solid accessor.
   *
 diff --git a/dist/Hooks.js b/dist/Hooks.js
-index 7bba053e79e9a24c212356027627c15188afbc3e..855f9d138b809ddfdb1a243840a082cc47b333b7 100644
+index 7bba053e79e9a24c212356027627c15188afbc3e..6466902eb29ebc05081dee9eccf1b4a255bf1272 100644
 --- a/dist/Hooks.js
 +++ b/dist/Hooks.js
 @@ -12,7 +12,7 @@ import * as Exit from "effect/Exit";
@@ -36,17 +36,20 @@ index 7bba053e79e9a24c212356027627c15188afbc3e..855f9d138b809ddfdb1a243840a082cc
  import { RegistryContext } from "./RegistryContext.js";
  const initialValuesSet = /*#__PURE__*/new WeakMap();
  /**
-@@ -58,19 +58,15 @@ export const useAtomValue = (atom, f) => {
+@@ -58,19 +58,18 @@ export const useAtomValue = (atom, f) => {
    return createAtomAccessor(registry, f ? () => Atom.map(atom(), f) : atom);
  };
  function createAtomAccessor(registry, atom) {
 -  const [value, setValue] = createSignal(null);
 -  createComputed(() => {
 -    onCleanup(registry.subscribe(atom(), setValue, constImmediate));
--  });
-+  const [value, setValue] = createSignal(registry.get(atom()));
-+  createEffect(atom, currentAtom => registry.subscribe(currentAtom, currentValue => setValue(() => currentValue), constImmediate));
-   return value;
++  const [revision, bumpRevision] = createSignal(0);
++  createEffect(atom, currentAtom => registry.subscribe(currentAtom, () => bumpRevision(current => current + 1), constImmediate));
++  return createMemo(() => {
++    revision();
++    return registry.get(atom());
+   });
+-  return value;
  }
  const constImmediate = {
    immediate: true
@@ -59,7 +62,7 @@ index 7bba053e79e9a24c212356027627c15188afbc3e..855f9d138b809ddfdb1a243840a082cc
  }
  function setAtom(registry, atom, options) {
    const memo = createMemo(atom);
-@@ -172,9 +168,7 @@ export const useAtom = (atom, options) => {
+@@ -172,9 +171,7 @@ export const useAtom = (atom, options) => {
   */
  export const useAtomSubscribe = (atom, f, options) => {
    const registry = useContext(RegistryContext);
@@ -70,7 +73,7 @@ index 7bba053e79e9a24c212356027627c15188afbc3e..855f9d138b809ddfdb1a243840a082cc
  };
  /**
   * Converts an `AsyncResult` atom into a Solid resource.
-@@ -184,14 +178,16 @@ export const useAtomSubscribe = (atom, f, options) => {
+@@ -184,14 +181,16 @@ export const useAtomSubscribe = (atom, f, options) => {
   */
  export const useAtomResource = (atom, options) => {
    const result = useAtomValue(atom);
@@ -93,7 +96,7 @@ index 7bba053e79e9a24c212356027627c15188afbc3e..855f9d138b809ddfdb1a243840a082cc
  };
  const constUnresolvedPromise = /*#__PURE__*/new Promise(() => {});
  /**
-@@ -216,11 +212,10 @@ const constUnresolvedPromise = /*#__PURE__*/new Promise(() => {});
+@@ -216,13 +215,12 @@ const constUnresolvedPromise = /*#__PURE__*/new Promise(() => {});
   * @since 4.0.0
   */
  export const useAtomRef = ref => {
@@ -102,15 +105,18 @@ index 7bba053e79e9a24c212356027627c15188afbc3e..855f9d138b809ddfdb1a243840a082cc
 -    const r = ref();
 -    setValue(r.value);
 -    onCleanup(r.subscribe(setValue));
-+  const [value, setValue] = createSignal(ref().value);
-+  createEffect(ref, currentRef => {
-+    setValue(() => currentRef.value);
-+    return currentRef.subscribe(currentValue => setValue(() => currentValue));
++  const [revision, bumpRevision] = createSignal(0);
++  createEffect(ref, currentRef => currentRef.subscribe(() => bumpRevision(current => current + 1)));
++  return createMemo(() => {
++    revision();
++    return ref().value;
    });
-   return value;
+-  return value;
  };
+ /**
+  * Returns a Solid accessor for a property ref derived from an atom ref.
 diff --git a/dist/RegistryContext.d.ts b/dist/RegistryContext.d.ts
-index a7c162359695e226b6443558d8439abe0732667c..0b42237fd20c06b180ac923b21c3b1a8e727cf1f 100644
+index a7c162359695e226b6443558d8439abe0732667c..5f3f71d18a06f8914fc7749eb4e8234bfc0c7ab7 100644
 --- a/dist/RegistryContext.d.ts
 +++ b/dist/RegistryContext.d.ts
 @@ -8,7 +8,7 @@
@@ -135,8 +141,9 @@ index a7c162359695e226b6443558d8439abe0732667c..0b42237fd20c06b180ac923b21c3b1a8
 -}) => JSX.Element;
 +}) => Element;
  //# sourceMappingURL=RegistryContext.d.ts.map
+\ No newline at end of file
 diff --git a/dist/RegistryContext.js b/dist/RegistryContext.js
-index 90440a97be7d4efa7dc32d981976276e2be5e9de..8d8c24fe6a65cfe42c4b31403a0cc6841ec8ba0f 100644
+index 90440a97be7d4efa7dc32d981976276e2be5e9de..194fd0e0eaf37150b5ac01b03fab3ab837f4dab2 100644
 --- a/dist/RegistryContext.js
 +++ b/dist/RegistryContext.js
 @@ -53,7 +53,7 @@ export const RegistryProvider = options => {
