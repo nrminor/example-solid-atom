@@ -47,12 +47,14 @@ export function App() {
         <div>
           <p className="eyebrow">Effect data lab / 01</p>
           <h1>
-            One request.<br />Every state accounted for.
+            One request.
+            <br />
+            Every state accounted for.
           </h1>
         </div>
         <p className="intro">
-          Effect describes a typed HTTP program. Atom runs and shares it. React renders the resulting state without a
-          request <code>useEffect</code> or a pile of booleans.
+          Effect describes a typed HTTP program. Atom runs and shares it. React renders the
+          resulting state without a request <code>useEffect</code> or a pile of booleans.
         </p>
       </header>
 
@@ -85,7 +87,8 @@ export function App() {
               </span>
             </div>
             <p className="hint">
-              <code>waiting</code> stays independent from success or failure, so refreshes do not erase useful data.
+              <code>waiting</code> stays independent from success or failure, so refreshes do not
+              erase useful data.
             </p>
           </div>
 
@@ -101,7 +104,8 @@ export function App() {
               <span>Use broken endpoint</span>
             </label>
             <p className="hint">
-              Change this after data loads. Atom keeps the previous success while exposing the typed failure.
+              Change this after data loads. Atom keeps the previous success while exposing the typed
+              failure.
             </p>
           </div>
 
@@ -146,46 +150,52 @@ export function App() {
           {errorMessage !== undefined && (
             <div className="error-panel" role="alert">
               <div>
-                <strong>{hasPreviousData ? "Refresh failed; showing cached data." : "Could not load todos."}</strong>
+                <strong>
+                  {hasPreviousData
+                    ? "Refresh failed; showing cached data."
+                    : "Could not load todos."}
+                </strong>
                 <p>{errorMessage}</p>
               </div>
-              <button type="button" onClick={retry}>Try again</button>
+              <button type="button" onClick={retry}>
+                Try again
+              </button>
             </div>
           )}
 
-          {isInitialLoading ?
-            (
-              <div className="loading-state" aria-live="polite">
-                <span className="loader" />
-                <div>
-                  <strong>Running the Effect</strong>
-                  <p>The first request has no previous value, so the atom is Initial + waiting.</p>
-                </div>
+          {isInitialLoading ? (
+            <div className="loading-state" aria-live="polite">
+              <span className="loader" />
+              <div>
+                <strong>Running the Effect</strong>
+                <p>The first request has no previous value, so the atom is Initial + waiting.</p>
               </div>
-            ) :
-            todos.length === 0 && errorMessage === undefined ?
-            <div className="empty-state">No todos match this filter.</div> :
-            (
-              <ol className={result.waiting ? "todo-list refreshing" : "todo-list"}>
-                {todos.map((todo) => (
-                  <li key={todo.id}>
-                    <span
-                      className={todo.completed ? "check done" : "check"}
-                      aria-label={todo.completed ? "Done" : "Open"}
-                    />
-                    <span>{todo.title}</span>
-                    <small>#{String(todo.id).padStart(3, "0")}</small>
-                  </li>
-                ))}
-              </ol>
-            )}
+            </div>
+          ) : todos.length === 0 && errorMessage === undefined ? (
+            <div className="empty-state">No todos match this filter.</div>
+          ) : (
+            <ol className={result.waiting ? "todo-list refreshing" : "todo-list"}>
+              {todos.map((todo) => (
+                <li key={todo.id}>
+                  <span
+                    className={todo.completed ? "check done" : "check"}
+                    aria-label={todo.completed ? "Done" : "Open"}
+                  />
+                  <span>{todo.title}</span>
+                  <small>#{String(todo.id).padStart(3, "0")}</small>
+                </li>
+              ))}
+            </ol>
+          )}
         </div>
       </section>
 
       <footer>
         Data from{" "}
-        <a href="https://jsonplaceholder.typicode.com/" target="_blank" rel="noreferrer">JSONPlaceholder</a>. Schema
-        decoding means invalid JSON becomes a typed failure too.
+        <a href="https://jsonplaceholder.typicode.com/" target="_blank" rel="noreferrer">
+          JSONPlaceholder
+        </a>
+        . Schema decoding means invalid JSON becomes a typed failure too.
       </footer>
     </main>
   )

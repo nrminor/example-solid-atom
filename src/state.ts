@@ -9,7 +9,9 @@ export const useBrokenEndpointAtom = Atom.make(false)
 
 const runtime = Atom.runtime(TodoApi.layer)
 
-export const todosAtom = runtime.atom((get) => TodoApi.use((api) => api.getTodos(get(useBrokenEndpointAtom))))
+export const todosAtom = runtime.atom((get) =>
+  TodoApi.use((api) => api.getTodos(get(useBrokenEndpointAtom)))
+)
 
 export const visibleTodosAtom = Atom.make((get) => {
   const filter = get(filterAtom)

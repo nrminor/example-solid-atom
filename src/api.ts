@@ -21,12 +21,17 @@ export class TodoApiError extends Data.TaggedError("TodoApiError")<{
   readonly cause: unknown
 }> {}
 
-export class TodoApi extends Context.Service<TodoApi, {
-  readonly getTodos: (useBrokenEndpoint: boolean) => Effect.Effect<ReadonlyArray<Todo>, TodoApiError>
-}>()("example-react/TodoApi") {
+export class TodoApi extends Context.Service<
+  TodoApi,
+  {
+    readonly getTodos: (
+      useBrokenEndpoint: boolean
+    ) => Effect.Effect<ReadonlyArray<Todo>, TodoApiError>
+  }
+>()("example-react/TodoApi") {
   static readonly layer = Layer.effect(
     TodoApi,
-    Effect.gen(function*() {
+    Effect.gen(function* () {
       const client = (yield* HttpClient.HttpClient).pipe(
         HttpClient.mapRequest((request) =>
           request.pipe(
@@ -41,21 +46,24 @@ export class TodoApi extends Context.Service<TodoApi, {
         })
       )
 
-      const getTodos = Effect.fnUntraced(function*(useBrokenEndpoint: boolean) {
+      const getTodos = Effect.fnUntraced(function* (useBrokenEndpoint: boolean) {
         const path = useBrokenEndpoint ? "/this-route-does-not-exist" : "/todos"
-        return yield* client.get(path, {
-          urlParams: useBrokenEndpoint ? {} : { _limit: 12 }
-        }).pipe(
-          Effect.flatMap(HttpClientResponse.schemaBodyJson(Schema.Array(Todo))),
-          Effect.mapError((cause) =>
-            new TodoApiError({
-              message: useBrokenEndpoint
-                ? "The demo requested a missing endpoint (404). The typed error stayed in Effect's error channel."
-                : "The API request failed. Check the network connection and try again.",
-              cause
-            })
+        return yield* client
+          .get(path, {
+            urlParams: useBrokenEndpoint ? {} : { _limit: 12 }
+          })
+          .pipe(
+            Effect.flatMap(HttpClientResponse.schemaBodyJson(Schema.Array(Todo))),
+            Effect.mapError(
+              (cause) =>
+                new TodoApiError({
+                  message: useBrokenEndpoint
+                    ? "The demo requested a missing endpoint (404). The typed error stayed in Effect's error channel."
+                    : "The API request failed. Check the network connection and try again.",
+                  cause
+                })
+            )
           )
-        )
       })
 
       return TodoApi.of({ getTodos })

@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "ignorePatterns": [".agents/**", "dist/**"],
+  "semi": false,
+  "singleQuote": false,
+  "sortPackageJson": false,
+  "trailingComma": "none",
+  "overrides": [
+    {
+      "files": ["tools/oxlint/anti-slop/**/*.ts"],
+      "options": {
+        "semi": true,
+        "trailingComma": "all",
+        "useTabs": true
+      }
+    }
+  ]
+}
