@@ -10,8 +10,8 @@ import * as HttpClientRequest from "effect/unstable/http/HttpClientRequest"
 import * as HttpClientResponse from "effect/unstable/http/HttpClientResponse"
 
 export class Todo extends Schema.Class<Todo>("Todo")({
-  userId: Schema.Number,
-  id: Schema.Number,
+  userId: Schema.Finite,
+  id: Schema.Finite,
   title: Schema.String,
   completed: Schema.Boolean
 }) {}
