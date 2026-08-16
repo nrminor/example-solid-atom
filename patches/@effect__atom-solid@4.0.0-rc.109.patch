@@ -1,0 +1,150 @@
+diff --git a/dist/Hooks.d.ts b/dist/Hooks.d.ts
+index 1d7be9a527b9abb3514b99e898f2a6ca96c899ec..3fb2840f1ca97f2259ea6b872e5ea26297803488 100644
+--- a/dist/Hooks.d.ts
++++ b/dist/Hooks.d.ts
+@@ -2,7 +2,7 @@ import * as Exit from "effect/Exit";
+ import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
+ import * as Atom from "effect/unstable/reactivity/Atom";
+ import type * as AtomRef from "effect/unstable/reactivity/AtomRef";
+-import type { Accessor, ResourceOptions, ResourceReturn } from "solid-js";
++import type { Accessor, MemoOptions, SourceAccessor } from "solid-js";
+ /**
+  * Seeds initial atom values in the current Solid atom registry.
+  *
+@@ -123,9 +123,9 @@ export declare const useAtomSubscribe: <A>(atom: () => Atom.Atom<A>, f: (_: A) =
+  * @category hooks
+  * @since 4.0.0
+  */
+-export declare const useAtomResource: <A, E>(atom: () => Atom.Atom<AsyncResult.AsyncResult<A, E>>, options?: ResourceOptions<A> & {
++export declare const useAtomResource: <A, E>(atom: () => Atom.Atom<AsyncResult.AsyncResult<A, E>>, options?: MemoOptions<A> & {
+     readonly suspendOnWaiting?: boolean | undefined;
+-}) => ResourceReturn<A, void>;
++}) => SourceAccessor<A>;
+ /**
+  * Subscribes to an atom ref and returns its value as a Solid accessor.
+  *
+diff --git a/dist/Hooks.js b/dist/Hooks.js
+index 7bba053e79e9a24c212356027627c15188afbc3e..855f9d138b809ddfdb1a243840a082cc47b333b7 100644
+--- a/dist/Hooks.js
++++ b/dist/Hooks.js
+@@ -12,7 +12,7 @@ import * as Exit from "effect/Exit";
+ import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
+ import * as Atom from "effect/unstable/reactivity/Atom";
+ import * as AtomRegistry from "effect/unstable/reactivity/AtomRegistry";
+-import { createComputed, createEffect, createMemo, createResource, createSignal, onCleanup, useContext } from "solid-js";
++import { createEffect, createMemo, createSignal, useContext } from "solid-js";
+ import { RegistryContext } from "./RegistryContext.js";
+ const initialValuesSet = /*#__PURE__*/new WeakMap();
+ /**
+@@ -58,19 +58,15 @@ export const useAtomValue = (atom, f) => {
+   return createAtomAccessor(registry, f ? () => Atom.map(atom(), f) : atom);
+ };
+ function createAtomAccessor(registry, atom) {
+-  const [value, setValue] = createSignal(null);
+-  createComputed(() => {
+-    onCleanup(registry.subscribe(atom(), setValue, constImmediate));
+-  });
++  const [value, setValue] = createSignal(registry.get(atom()));
++  createEffect(atom, currentAtom => registry.subscribe(currentAtom, currentValue => setValue(() => currentValue), constImmediate));
+   return value;
+ }
+ const constImmediate = {
+   immediate: true
+ };
+ function mountAtom(registry, atom) {
+-  createComputed(() => {
+-    onCleanup(registry.mount(atom()));
+-  });
++  createEffect(atom, currentAtom => registry.mount(currentAtom));
+ }
+ function setAtom(registry, atom, options) {
+   const memo = createMemo(atom);
+@@ -172,9 +168,7 @@ export const useAtom = (atom, options) => {
+  */
+ export const useAtomSubscribe = (atom, f, options) => {
+   const registry = useContext(RegistryContext);
+-  createEffect(() => {
+-    onCleanup(registry.subscribe(atom(), f, options));
+-  });
++  createEffect(atom, currentAtom => registry.subscribe(currentAtom, f, options));
+ };
+ /**
+  * Converts an `AsyncResult` atom into a Solid resource.
+@@ -184,14 +178,16 @@ export const useAtomSubscribe = (atom, f, options) => {
+  */
+ export const useAtomResource = (atom, options) => {
+   const result = useAtomValue(atom);
+-  return createResource(result, result => {
+-    if (AsyncResult.isInitial(result) || options?.suspendOnWaiting && result.waiting) {
++  const { suspendOnWaiting, ...memoOptions } = options ?? {};
++  return createMemo(() => {
++    const current = result();
++    if (AsyncResult.isInitial(current) || suspendOnWaiting && current.waiting) {
+       return constUnresolvedPromise;
+-    } else if (AsyncResult.isSuccess(result)) {
+-      return Promise.resolve(result.value);
++    } else if (AsyncResult.isSuccess(current)) {
++      return current.value;
+     }
+-    return Promise.reject(Cause.squash(result.cause));
+-  });
++    return Promise.reject(Cause.squash(current.cause));
++  }, memoOptions);
+ };
+ const constUnresolvedPromise = /*#__PURE__*/new Promise(() => {});
+ /**
+@@ -216,11 +212,10 @@ const constUnresolvedPromise = /*#__PURE__*/new Promise(() => {});
+  * @since 4.0.0
+  */
+ export const useAtomRef = ref => {
+-  const [value, setValue] = createSignal(null);
+-  createComputed(() => {
+-    const r = ref();
+-    setValue(r.value);
+-    onCleanup(r.subscribe(setValue));
++  const [value, setValue] = createSignal(ref().value);
++  createEffect(ref, currentRef => {
++    setValue(() => currentRef.value);
++    return currentRef.subscribe(currentValue => setValue(() => currentValue));
+   });
+   return value;
+ };
+diff --git a/dist/RegistryContext.d.ts b/dist/RegistryContext.d.ts
+index a7c162359695e226b6443558d8439abe0732667c..0b42237fd20c06b180ac923b21c3b1a8e727cf1f 100644
+--- a/dist/RegistryContext.d.ts
++++ b/dist/RegistryContext.d.ts
+@@ -8,7 +8,7 @@
+  */
+ import type * as Atom from "effect/unstable/reactivity/Atom";
+ import * as AtomRegistry from "effect/unstable/reactivity/AtomRegistry";
+-import type { JSX } from "solid-js";
++import type { Element } from "solid-js";
+ /**
+  * Provides a Solid context that carries the `AtomRegistry` used by atom hooks in the
+  * current owner tree.
+@@ -55,10 +55,10 @@ export declare const RegistryContext: import("solid-js").Context<AtomRegistry.At
+  * @since 4.0.0
+  */
+ export declare const RegistryProvider: (options: {
+-    readonly children?: JSX.Element | undefined;
++    readonly children?: Element | undefined;
+     readonly initialValues?: Iterable<readonly [Atom.Atom<any>, any]> | undefined;
+     readonly scheduleTask?: ((f: () => void) => () => void) | undefined;
+     readonly timeoutResolution?: number | undefined;
+     readonly defaultIdleTTL?: number | undefined;
+-}) => JSX.Element;
++}) => Element;
+ //# sourceMappingURL=RegistryContext.d.ts.map
+diff --git a/dist/RegistryContext.js b/dist/RegistryContext.js
+index 90440a97be7d4efa7dc32d981976276e2be5e9de..8d8c24fe6a65cfe42c4b31403a0cc6841ec8ba0f 100644
+--- a/dist/RegistryContext.js
++++ b/dist/RegistryContext.js
+@@ -53,7 +53,7 @@ export const RegistryProvider = options => {
+     defaultIdleTTL: options.defaultIdleTTL ?? 400
+   });
+   onCleanup(() => registry.dispose());
+-  return createComponent(RegistryContext.Provider, {
++  return createComponent(RegistryContext, {
+     value: registry,
+     get children() {
+       return options.children;

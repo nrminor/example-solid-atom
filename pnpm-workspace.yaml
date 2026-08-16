@@ -1,7 +1,14 @@
 enableGlobalVirtualStore: true
+packageExtensions:
+  "@effect/atom-solid@4.0.0-rc.109":
+    peerDependencies:
+      solid-js: 2.0.0-rc.0
 allowBuilds:
   agent-browser: true
   msgpackr-extract: false
 minimumReleaseAgeExclude:
+  - "@effect/atom-solid@4.0.0-rc.109"
   - "@effect/atom-react@4.0.0-rc.109"
   - effect@4.0.0-rc.109
+patchedDependencies:
+  "@effect/atom-solid@4.0.0-rc.109": patches/@effect__atom-solid@4.0.0-rc.109.patch

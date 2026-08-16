@@ -30,5 +30,5 @@
       }
     ]
   },
-  "include": ["src", "tools/oxlint/**/*.ts", "vite.config.ts"]
+  "include": ["src", "tests/**/*.ts", "tools/oxlint/**/*.ts", "vite.config.ts", "vitest.config.ts"]
 }

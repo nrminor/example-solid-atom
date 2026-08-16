@@ -13,28 +13,35 @@
     "lint:fix": "oxlint --fix .",
     "fmt": "oxfmt .",
     "fmt:check": "oxfmt --check .",
+    "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "preview": "vite preview"
   },
   "dependencies": {
     "@effect/atom-react": "4.0.0-rc.109",
+    "@effect/atom-solid": "4.0.0-rc.109",
+    "@solidjs/web": "2.0.0-rc.0",
     "effect": "4.0.0-rc.109",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "scheduler": "^0.27.0"
+    "scheduler": "^0.27.0",
+    "solid-js": "2.0.0-rc.0"
   },
   "devDependencies": {
     "@effect/tsgo": "0.36.5",
     "@oxlint/plugins": "1.78.0",
     "@playwright/test": "1.62.1",
+    "@solidjs/vite-plugin": "3.0.0-next.28",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.2",
     "@vitejs/plugin-react": "^6.0.5",
     "agent-browser": "0.34.0",
+    "jsdom": "30.0.1",
     "oxfmt": "0.63.0",
     "oxlint": "1.78.0",
     "oxlint-tsgolint": "7.0.2001",
     "typescript": "^7.0.2",
-    "vite": "^8.1.5"
+    "vite": "^8.1.5",
+    "vitest": "4.1.10"
   }
 }
