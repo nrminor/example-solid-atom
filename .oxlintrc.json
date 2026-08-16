@@ -12,6 +12,14 @@
     "reportUnusedDisableDirectives": "error",
     "typeAware": true
   },
+  "overrides": [
+    {
+      "files": ["tests/e2e/**/*.ts"],
+      "rules": {
+        "effecttsgo/async-function": "off"
+      }
+    }
+  ],
   "rules": {
     "anti-slop/no-chained-type-assertions": "error",
     "anti-slop/no-conditional-empty-object-spread": "error",

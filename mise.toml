@@ -4,6 +4,10 @@
 node = "24"
 pnpm = "11.20.0"
 
+[tasks.browser-install]
+description = "Install browsers for Playwright and agent-browser"
+run = "pnpm exec playwright install chromium && pnpm exec agent-browser install"
+
 [bootstrap.repos]
 ".agents/repos/example-react-atom" = { url = "https://github.com/mikearnaldi/example-react-atom.git" }
 ".agents/repos/effect" = { url = "https://github.com/Effect-TS/effect.git" }
